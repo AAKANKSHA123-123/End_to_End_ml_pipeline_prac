@@ -6,8 +6,12 @@ from nltk.stem.porter import PorterStemmer
 from nltk.corpus import stopwords
 import string
 import nltk
-nltk.download('stopwords')
-nltk.download('punkt')
+import traceback
+import re
+from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
+
+# nltk.download('stopwords')
+# nltk.download('punkt')
 
 # Ensure the "logs" directory exists
 log_dir = 'logs'
@@ -32,22 +36,60 @@ logger.addHandler(console_handler)
 logger.addHandler(file_handler)
 
 def transform_text(text):
-    """
-    Transforms the input text by converting it to lowercase, tokenizing, removing stopwords and punctuation, and stemming.
-    """
-    ps = PorterStemmer()
-    # Convert to lowercase
-    text = text.lower()
-    # Tokenize the text
-    text = nltk.word_tokenize(text)
-    # Remove non-alphanumeric tokens
-    text = [word for word in text if word.isalnum()]
-    # Remove stopwords and punctuation
-    text = [word for word in text if word not in stopwords.words('english') and word not in string.punctuation]
-    # Stem the words
-    text = [ps.stem(word) for word in text]
-    # Join the tokens back into a single string
-    return " ".join(text)
+    # """
+    # Transforms the input text by converting it to lowercase, tokenizing, removing stopwords and punctuation, and stemming.
+    # """
+    # ps = PorterStemmer()
+    # # Convert to lowercase
+    # text = text.lower()
+    # # Tokenize the text
+    # text = nltk.word_tokenize(text)
+    # # Remove non-alphanumeric tokens
+    # text = [word for word in text if word.isalnum()]
+    # # Remove stopwords and punctuation
+    # text = [word for word in text if word not in stopwords.words('english') and word not in string.punctuation]
+    # # Stem the words
+    # text = [ps.stem(word) for word in text]
+    # # Join the tokens back into a single string
+    # return " ".join(text)
+
+
+    
+    # try:
+    #     import nltk.tokenize.punkt
+    #     print("Tokenizer class:", nltk.tokenize.punkt.PunktSentenceTokenizer.__module__)
+    
+    #     ps = PorterStemmer()
+    #     text = text.lower()
+    #     text = nltk.word_tokenize(text)  # suspect line
+    #     text = [word for word in text if word.isalnum()]
+    #     text = [word for word in text if word not in stopwords.words('english') and word not in string.punctuation]
+    #     text = [ps.stem(word) for word in text]
+    #     return " ".join(text)
+    # except Exception as e:
+    #     print("❌ Text normalization failed")
+    #     traceback.print_exc()  # 🔍 will show exactly what line and what file triggered punkt_tab
+    #     raise
+    try:
+        # Lowercase
+        text = text.lower()
+        
+        # Tokenize using regex
+        tokens = re.findall(r'\b\w+\b', text)
+
+        # Remove stopwords
+        tokens = [word for word in tokens if word not in ENGLISH_STOP_WORDS]
+
+        # (Optional) Remove punctuation (already handled by regex, but just in case)
+        tokens = [word for word in tokens if word not in string.punctuation]
+
+        return " ".join(tokens)
+    
+    except Exception as e:
+        print("❌ Text normalization failed")
+        import traceback
+        traceback.print_exc()
+        raise
 
 def preprocess_df(df, text_column='text', target_column='target'):
     """
